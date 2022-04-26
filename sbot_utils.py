@@ -11,7 +11,6 @@ class SbotGeneralEvent(sublime_plugin.EventListener):
 
     def on_selection_modified(self, view):
         ''' Show the abs position in the status bar. '''
-        # slog('DEV', f'{view}')
         pos = view.sel()[0].begin()
         view.set_status("position", f'Pos {pos}')
 
