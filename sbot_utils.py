@@ -5,6 +5,9 @@ import sublime
 import sublime_plugin
 
 
+UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
+
+
 #-----------------------------------------------------------------------------------
 class SbotGeneralEvent(sublime_plugin.EventListener):
     ''' Listener for window events of interest. '''
@@ -35,3 +38,17 @@ class SbotSplitViewCommand(sublime_plugin.WindowCommand):
             window.run_command("clone_file")
             window.run_command("move_to_group", {"group": 1})
             window.active_view().run_command("goto_line", {"line": sel_row})
+
+
+#-----------------------------------------------------------------------------------
+class SbotCheatsheetCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        settings = sublime.load_settings(UTILS_SETTINGS_FILE)
+
+        fn = settings.get('cheat_sheet_path')
+        if fn is not None and os.path.exists(fn):
+            self.window.open_file(fn)
+        else:
+            sublime.error_message(f'Invalid file: {fn}')            
+        # fn = os.path.join(sublime.packages_path(), 'SbotUtils', 'ST-commands.md')

@@ -1,0 +1,38 @@
+[
+    // Add to existing Preferences menu for package-settings.
+    {
+        "id": "preferences",
+        "children":
+        [
+            {
+                "id": "package-settings",
+                "children":
+                [
+                    {
+                        "caption": "SbotUtils",
+                        "children":
+                        [
+                            {
+                                "caption": "Settings",
+                                "command": "edit_settings",
+                                "args":
+                                {
+                                    "base_file": "${packages}/SbotUtils/SbotUtils.sublime-settings",
+                                    "default": "{\n$0\n}\n"
+                                }
+                            },
+                        ]
+                    }
+                ]
+            },
+        ],
+    },
+    {
+        "id": "help",
+        "children":
+        [
+            { "caption": "-" },
+            { "caption": "Cheatsheet", "command": "sbot_cheatsheet" },
+        ]
+    },
+]
