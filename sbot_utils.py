@@ -5,7 +5,12 @@ import pathlib
 import subprocess
 import sublime
 import sublime_plugin
-from SbotCommon.sbot_common import create_new_view, slog
+
+try:
+    import SbotCommon.sbot_common as sbot
+except ModuleNotFoundError as e:
+    sublime.message_dialog('SbotUtils plugin requires SbotCommon plugin')
+    raise ImportError('SbotUtils plugin requires SbotCommon plugin')
 
 UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
 
@@ -16,8 +21,9 @@ class SbotGeneralEvent(sublime_plugin.EventListener):
 
     def on_selection_modified(self, view):
         ''' Show the abs position in the status bar. '''
-        pos = view.sel()[0].begin()
-        view.set_status("position", f'Pos {pos}')
+        if len(view.sel()) > 0:
+            pos = view.sel()[0].begin()
+            view.set_status("position", f'Pos {pos}')
 
 
 #-----------------------------------------------------------------------------------
@@ -67,7 +73,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
         cmd = '???'
         if platform.system() == 'Windows':
             ver = float(platform.win32_ver()[0])
-            print(ver)
+            sbot.slog(sbot.CAT_INF, ver)
             cmd = f'wt -d "{path}"' if ver >= 10 else f'cmd /K "cd {path}"'
         else:
             cmd = f'gnome-terminal --working-directory="{path}"'
@@ -93,7 +99,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
 
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
             if(len(cp.stdout) > 0):
-                create_new_view(self.window, cp.stdout)
+                sbot.create_new_view(self.window, cp.stdout)
         except Exception as e:
             sublime.message_dialog(f'Unhandled exception: {e}!\nGo look in the log.\n')
 
