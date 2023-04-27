@@ -6,12 +6,7 @@ import pathlib
 import subprocess
 import sublime
 import sublime_plugin
-
-try:
-    import SbotCommon.sbot_common as sbot
-except ModuleNotFoundError as e:
-    sublime.message_dialog('SbotUtils plugin requires SbotCommon plugin')
-    raise ImportError('SbotUtils plugin requires SbotCommon plugin')
+from .sbot_common import *
 
 UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
 
@@ -78,7 +73,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
         cmd = '???'
         if platform.system() == 'Windows':
             ver = float(platform.win32_ver()[0])
-            # sbot.slog(sbot.CAT_INF, ver)
+            # slog(CAT_INF, ver)
             cmd = f'wt -d "{path}"' if ver >= 10 else f'cmd /K "cd {path}"'
         else:
             cmd = f'gnome-terminal --working-directory="{path}"'
@@ -104,7 +99,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
 
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
             if(len(cp.stdout) > 0):
-                sbot.create_new_view(self.window, cp.stdout)
+                create_new_view(self.window, cp.stdout)
         except Exception as e:
             sublime.message_dialog(f'Unhandled exception: {e}!\nGo look in the log.\n')
 
@@ -123,7 +118,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
 #-----------------------------------------------------------------------------------
 
 
-#   { "command": "open_context_path" },
+#   { "command": "open_context_path" }, TODO
 
 # C:\Users\cepth\OneDrive\OneDrive Documents\tech\sublime\ST\Default\open_context_url.py
 
