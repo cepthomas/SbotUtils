@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import platform
 import pathlib
 import subprocess
@@ -61,6 +62,10 @@ class SbotCheatsheetCommand(sublime_plugin.WindowCommand):
             sublime.error_message(f'Invalid file: {fn}')            
         # fn = os.path.join(sublime.packages_path(), 'SbotUtils', 'ST-commands.md')
 
+    def is_visible(self):
+        settings = sublime.load_settings(UTILS_SETTINGS_FILE)
+        fn = settings.get('cheat_sheet_path')
+        return fn is not None
 
 #-----------------------------------------------------------------------------------
 class SbotTerminalCommand(sublime_plugin.WindowCommand):
@@ -73,7 +78,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
         cmd = '???'
         if platform.system() == 'Windows':
             ver = float(platform.win32_ver()[0])
-            sbot.slog(sbot.CAT_INF, ver)
+            # sbot.slog(sbot.CAT_INF, ver)
             cmd = f'wt -d "{path}"' if ver >= 10 else f'cmd /K "cd {path}"'
         else:
             cmd = f'gnome-terminal --working-directory="{path}"'
@@ -95,7 +100,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         fn = self.window.active_view().file_name()
 
         try:
-            cmd = ['python', fn] if fn.endswith('.py') else [fn]
+            cmd = [fn] #['python', fn] if fn.endswith('.py') else [fn]
 
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
             if(len(cp.stdout) > 0):
@@ -111,3 +116,66 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         else:
             ext = os.path.splitext(fn)[1]
             return True # ext in ['.html', '.svg', '.py', etc]
+
+
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+
+
+#   { "command": "open_context_path" },
+
+# C:\Users\cepth\OneDrive\OneDrive Documents\tech\sublime\ST\Default\open_context_url.py
+
+
+rex = re.compile(
+    r'''(?x)
+    \b(?:
+        https?://(?:(?:[\w\d\-]+(?:\.[\w\d\-.]+)+)|localhost)|  # http://
+        www\.[\w\d\-]+(?:\.[\w\d\-.]+)+                         # www.
+    )
+    /?[\w\d\-.?,!'(){}\[\]/+&@%$#=:"|~;]*                       # path path and query string
+    [\w\d\-~:/#@$*+=]                                           # allowed end chars
+    ''')
+
+
+class OpenContextUrlCommand(sublime_plugin.TextCommand):
+    def name(self):
+        return 'old_open_context_path'
+
+    def run(self, edit, event):
+        path = self.find_path(event)
+        webbrowser.open_new_tab(path)
+
+    def is_visible(self, event):
+        return self.find_path(event) is not None
+
+    def find_path(self, event):
+        pt = self.view.window_to_text((event["x"], event["y"]))
+        line = self.view.line(pt)
+
+        line.a = max(line.a, pt - 1024)
+        line.b = min(line.b, pt + 1024)
+
+        text = self.view.substr(line)
+
+        it = rex.finditer(text)
+
+        for match in it:
+            if match.start() <= (pt - line.a) and match.end() >= (pt - line.a):
+                path = text[match.start():match.end()]
+                if path[0:3] == "www":
+                    return "http://" + path
+                else:
+                    return path
+
+        return None
+
+    def description(self, event):
+        path = self.find_path(event)
+        if len(path) > 64:
+            path = path[0:64] + "..."
+        return "Open " + path
+
+    def want_event(self):
+        return True
