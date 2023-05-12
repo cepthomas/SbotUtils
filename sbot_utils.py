@@ -95,7 +95,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         fn = self.window.active_view().file_name()
 
         try:
-            cmd = [fn] #['python', fn] if fn.endswith('.py') else [fn]
+            cmd = [fn] #['python', fn] if fn.endswith('.py') else [fn] TODO probably put this back.
 
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
             if(len(cp.stdout) > 0):
