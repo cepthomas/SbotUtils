@@ -6,7 +6,7 @@ import pathlib
 import subprocess
 import sublime
 import sublime_plugin
-from .sbot_common import *
+from . import sbot_common as sc
 
 UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
 
@@ -73,7 +73,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
         cmd = '???'
         if platform.system() == 'Windows':
             ver = float(platform.win32_ver()[0])
-            # slog(CAT_INF, ver)
+            # slog(sc.CAT_INF, ver)
             cmd = f'wt -d "{path}"' if ver >= 10 else f'cmd /K "cd {path}"'
         else:
             cmd = f'gnome-terminal --working-directory="{path}"'
@@ -93,7 +93,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         fn = self.window.active_view().file_name()
-        start_file(fn)
+        sc.start_file(fn)
 
     def is_visible(self):
         # Assumes caller knows what they are doing.
@@ -101,5 +101,5 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         if fn is None:
             return False
         else:
-            ext = os.path.splitext(fn)[1]
-            return True # ext in ['.html', '.svg', '.py', etc]
+            # ext = os.path.splitext(fn)[1]
+            return True  # ext in ['.html', '.svg', '.py', etc]
