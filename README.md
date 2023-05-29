@@ -14,12 +14,17 @@ Built for ST4 on Windows and Linux.
 Requires SbotCommon plugin.
 
 ## Commands
-| Command                    | Implementation | Description                        | Args                        |
-| :--------                  | :-------       | :-------                           | :-------                    |
-| sbot_cheatsheet            | Main           | Opens your cheatsheet file         |                             |
+| Command                | Implementation | Description                                        | Args                        |
+| :--------              | :-------       | :-------                                           | :-------                    |
+| sbot_cheatsheet        | Main           | Opens your cheatsheet file                         |                             |
+| sbot_split_view        | Context        | Toggle split view                                  |                             |
+| sbot_exec              | Context        | Run selected executable with output to new view    |                             |
+| sbot_run_script        | Context        | Run selected script with output to new view        |                             |
+| sbot_terminal          | Context        | Open a terminal here                               |                             |
+
 
 ## Settings
-| Setting            | Description                        | Options                                              |
-| :--------          | :-------                           | :------                                              |
-| cheat_sheet_path   | Path to a file to open on select   |                                                      |
+| Setting                    | Description                        | Options                                              |
+| :--------                  | :-------                           | :------                                              |
+| cheatsheet_path            | Path to a file to open on select   |                                                      |
 

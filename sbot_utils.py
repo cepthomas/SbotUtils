@@ -50,7 +50,7 @@ class SbotCheatsheetCommand(sublime_plugin.WindowCommand):
     def run(self):
         settings = sublime.load_settings(UTILS_SETTINGS_FILE)
 
-        fn = settings.get('cheat_sheet_path')
+        fn = settings.get('cheatsheet_path')
         if fn is not None and os.path.exists(fn):
             self.window.open_file(fn)
         else:
@@ -59,12 +59,12 @@ class SbotCheatsheetCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self):
         settings = sublime.load_settings(UTILS_SETTINGS_FILE)
-        fn = settings.get('cheat_sheet_path')
+        fn = settings.get('cheatsheet_path')
         return fn is not None
 
 #-----------------------------------------------------------------------------------
 class SbotTerminalCommand(sublime_plugin.WindowCommand):
-    ''' Open term here. '''
+    ''' Open terminal here. '''
 
     def run(self):
         fn = self.window.active_view().file_name()
@@ -87,7 +87,8 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 class SbotExecCommand(sublime_plugin.WindowCommand):
-    ''' Simple executioner for exes/cmds without args, like you double clicked it.
+    '''
+    Simple executioner for exes/cmds without args, like you double clicked it.
     Assumes file associations are set to preferences.
     '''
 
@@ -103,3 +104,18 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         else:
             # ext = os.path.splitext(fn)[1]
             return True  # ext in ['.html', '.svg', '.py', etc]
+
+
+#-----------------------------------------------------------------------------------
+class SbotRunScriptCommand(sublime_plugin.WindowCommand):
+    ''' Script runner. Currently only python. '''
+
+    def run(self):
+        fn = self.window.active_view().file_name()
+        sc.run_script(fn, self.window)
+
+    def is_visible(self):
+        fn = self.window.active_view().file_name()
+        ext = os.path.splitext(fn)[1]
+        return ext in ['.py'] and (platform.system() == 'Windows' or platform.system() == 'Linux')
+
