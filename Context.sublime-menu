@@ -1,0 +1,7 @@
+[ 
+    { "caption": "-" },
+    { "caption": "Split View 2 Pane", "command": "sbot_utils_split_view" },
+    { "caption": "Open Terminal", "command": "sbot_utils_terminal"},
+    { "caption": "Execute", "command": "sbot_utils_exec"},
+    { "caption": "Run Script", "command": "sbot_utils_run_script"},
+]

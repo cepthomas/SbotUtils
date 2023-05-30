@@ -8,6 +8,10 @@ import sublime
 import sublime_plugin
 from . import sbot_common as sc
 
+
+# TODO Simple git tools: diff, commit, push? https://github.com/kemayo/sublime-text-git.
+
+
 UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
 
 
@@ -23,7 +27,7 @@ class SbotGeneralEvent(sublime_plugin.EventListener):
 
 
 #-----------------------------------------------------------------------------------
-class SbotSplitViewCommand(sublime_plugin.WindowCommand):
+class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
     ''' Toggles between split file views. '''
 
     def run(self):
@@ -45,7 +49,7 @@ class SbotSplitViewCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotCheatsheetCommand(sublime_plugin.WindowCommand):
+class SbotUtilsCheatsheetCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         settings = sublime.load_settings(UTILS_SETTINGS_FILE)
@@ -63,7 +67,7 @@ class SbotCheatsheetCommand(sublime_plugin.WindowCommand):
         return fn is not None
 
 #-----------------------------------------------------------------------------------
-class SbotTerminalCommand(sublime_plugin.WindowCommand):
+class SbotUtilsTerminalCommand(sublime_plugin.WindowCommand):
     ''' Open terminal here. '''
 
     def run(self):
@@ -86,7 +90,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotExecCommand(sublime_plugin.WindowCommand):
+class SbotUtilsExecCommand(sublime_plugin.WindowCommand):
     '''
     Simple executioner for exes/cmds without args, like you double clicked it.
     Assumes file associations are set to preferences.
@@ -102,12 +106,11 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         if fn is None:
             return False
         else:
-            # ext = os.path.splitext(fn)[1]
-            return True  # ext in ['.html', '.svg', '.py', etc]
+            return True
 
 
 #-----------------------------------------------------------------------------------
-class SbotRunScriptCommand(sublime_plugin.WindowCommand):
+class SbotUtilsRunScriptCommand(sublime_plugin.WindowCommand):
     ''' Script runner. Currently only python. '''
 
     def run(self):
@@ -115,7 +118,9 @@ class SbotRunScriptCommand(sublime_plugin.WindowCommand):
         sc.run_script(fn, self.window)
 
     def is_visible(self):
+        vis = False
         fn = self.window.active_view().file_name()
-        ext = os.path.splitext(fn)[1]
-        return ext in ['.py'] and (platform.system() == 'Windows' or platform.system() == 'Linux')
-
+        if fn is not None:
+            ext = os.path.splitext(fn)[1]
+            vis = ext in ['.py'] and (platform.system() == 'Windows' or platform.system() == 'Linux')
+        return vis

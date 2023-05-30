@@ -32,7 +32,7 @@
         "children":
         [
             { "caption": "-" },
-            { "caption": "Cheatsheet", "command": "sbot_cheatsheet" },
+            { "caption": "Cheatsheet", "command": "sbot_utils_cheatsheet" },
         ]
     },
 ]
