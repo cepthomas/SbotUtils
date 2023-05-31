@@ -14,13 +14,13 @@ Built for ST4 on Windows and Linux.
 Requires SbotCommon plugin.
 
 ## Commands
-| Command                | Implementation | Description                                        | Args                        |
-| :--------              | :-------       | :-------                                           | :-------                    |
-| sbot_utils_cheatsheet  | Main           | Opens your cheatsheet file                         |                             |
-| sbot_utils_split_view  | Context        | Toggle split view                                  |                             |
-| sbot_utils_exec        | Context        | Run selected executable with output to new view    |                             |
-| sbot_utils_run_script  | Context        | Run selected script with output to new view        |                             |
-| sbot_utils_terminal    | Context        | Open a terminal here                               |                             |
+| Command                | Type     | Description                                        | Args                        |
+| :--------              | :------- | :-------                                           | :-------                    |
+| sbot_utils_cheatsheet  | Main     | Opens your cheatsheet file                         |                             |
+| sbot_utils_split_view  | Context  | Toggle split view                                  |                             |
+| sbot_utils_exec        | Context  | Run selected executable with output to new view    |                             |
+| sbot_utils_run_script  | Context  | Run selected script with output to new view        |                             |
+| sbot_utils_terminal    | Context  | Open a terminal here                               |                             |
 
 
 ## Settings

@@ -9,9 +9,6 @@ import sublime_plugin
 from . import sbot_common as sc
 
 
-# TODO Simple git tools: diff, commit, push? https://github.com/kemayo/sublime-text-git.
-
-
 UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
 
 
