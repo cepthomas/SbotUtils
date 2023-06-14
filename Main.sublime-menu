@@ -27,12 +27,4 @@
             },
         ],
     },
-    {
-        "id": "help",
-        "children":
-        [
-            { "caption": "-" },
-            { "caption": "Cheatsheet", "command": "sbot_utils_cheatsheet" },
-        ]
-    },
 ]

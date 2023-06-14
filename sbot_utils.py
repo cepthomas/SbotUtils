@@ -9,6 +9,8 @@ import sublime_plugin
 from . import sbot_common as sc
 
 
+# TODO Simple git tools: diff, commit, push? https://github.com/kemayo/sublime-text-git.
+
 UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
 
 
@@ -47,6 +49,7 @@ class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 class SbotUtilsCheatsheetCommand(sublime_plugin.WindowCommand):
+    ''' Open user file. '''
 
     def run(self):
         settings = sublime.load_settings(UTILS_SETTINGS_FILE)
