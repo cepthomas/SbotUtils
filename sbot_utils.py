@@ -20,9 +20,8 @@ class SbotGeneralEvent(sublime_plugin.EventListener):
 
     def on_selection_modified(self, view):
         ''' Show the abs position in the status bar. '''
-        if len(view.sel()) > 0:
-            pos = view.sel()[0].begin()
-            view.set_status("position", f'Pos {pos}')
+        caret = sc.get_single_caret(view)
+        view.set_status("position", f'???' if caret is None else f'Pos {caret}')
 
 
 #-----------------------------------------------------------------------------------
@@ -39,7 +38,8 @@ class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
             window.run_command("set_layout", {"cols": [0.0, 1.0], "rows": [0.0, 1.0], "cells": [[0, 0, 1, 1]]})
         else:
             # Add split.
-            sel_row, _ = window.active_view().rowcol(window.active_view().sel()[0].a)  # current sel
+            caret = sc.get_single_caret(window.active_view())
+            sel_row, _ = window.active_view().rowcol(caret)  # current sel
             window.run_command("set_layout", {"cols": [0.0, 1.0], "rows": [0.0, 0.5, 1.0], "cells": [[0, 0, 1, 1], [0, 1, 1, 2]]})
             window.run_command("focus_group", {"group": 0})
             window.run_command("clone_file")
