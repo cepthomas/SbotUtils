@@ -48,25 +48,6 @@ class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotUtilsCheatsheetCommand(sublime_plugin.WindowCommand):
-    ''' Open user file. '''
-
-    def run(self):
-        settings = sublime.load_settings(UTILS_SETTINGS_FILE)
-
-        fn = settings.get('cheatsheet_path')
-        if fn is not None and os.path.exists(fn):
-            self.window.open_file(fn)
-        else:
-            sublime.error_message(f'Invalid file: {fn}')            
-        # fn = os.path.join(sublime.packages_path(), 'SbotUtils', 'ST-commands.md')
-
-    def is_visible(self):
-        settings = sublime.load_settings(UTILS_SETTINGS_FILE)
-        fn = settings.get('cheatsheet_path')
-        return fn is not None
-
-#-----------------------------------------------------------------------------------
 class SbotUtilsTerminalCommand(sublime_plugin.WindowCommand):
     ''' Open terminal here. '''
 
@@ -98,7 +79,12 @@ class SbotUtilsExecCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         fn = self.window.active_view().file_name()
-        sc.start_file(fn)
+        if fn is not None:
+            ext = os.path.splitext(fn)[1]
+            if ext in ['.py']:
+                sc.run_script(fn, self.window)
+            else:
+                sc.start_file(fn)
 
     def is_visible(self):
         # Assumes caller knows what they are doing.
