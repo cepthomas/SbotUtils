@@ -11,7 +11,6 @@ Built for ST4 on Windows and Linux.
 - Menu item to open a file as your cheatsheet, typically something from [ST docs](https://www.sublimetext.com/docs/)
 
 
-Requires SbotCommon plugin.
 
 ## Commands
 | Command                | Type     | Description                                        | Args                        |
@@ -26,5 +25,28 @@ Requires SbotCommon plugin.
 ## Settings
 | Setting                    | Description                        | Options                                              |
 | :--------                  | :-------                           | :------                                              |
-| cheatsheet_path            | Path to a file to open on select   |                                                      |
 
+# From old Sidebar:
+
+# What It Is
+Commands added to the sidebar defaults. Similar in concept to SideBarEnhancements
+but it has too much extra stuff. This has just the basics and can be extended incrementally.
+
+Built for ST4 on Windows and Linux (with a couple of exceptions).
+
+## Commands
+| Command                    | Type     | Description                                         | Args      |
+| :--------                  | :------- | :-------                                            | :-------- |
+| sbot_sidebar_copy_name     | Sidebar  | Copy file/dir name to clipboard                     |           |
+| sbot_sidebar_copy_path     | Sidebar  | Copy full file/dir path to clipboard                |           |
+| sbot_sidebar_copy_file     | Sidebar  | Copy selected file to a new file in the same folder |           |
+| sbot_sidebar_exec          | Sidebar  | Run selected executable with output to new view     |           |
+| sbot_sidebar_run_script    | Sidebar  | Run selected script with output to new view         |           |
+| sbot_sidebar_terminal      | Sidebar  | Open a terminal here                                |           |
+| sbot_sidebar_tree          | Sidebar  | Run tree cmd to new view (win only)                 |           |
+
+## Settings
+No internal but the right click stuff works better with this setting:
+```
+"preview_on_click": "only_left",
+```

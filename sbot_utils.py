@@ -47,66 +47,22 @@ class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
             window.active_view().run_command("goto_line", {"line": sel_row})
 
 
-# #-----------------------------------------------------------------------------------
-# class SbotUtilsTerminalCommand(sublime_plugin.WindowCommand):
-#     ''' Open terminal here. '''
+#-----------------------------------------------------------------------------------
+class SbotUtilsTreeCommand(sublime_plugin.WindowCommand): # TODO was in Sidebar
+    ''' Run tree command to a new view. '''
 
-#     def run(self):
-#         fn = self.window.active_view().file_name()
-#         path = os.path.split(fn)[0]
+    def run(self, paths=None):
+        if len(paths) > 0:
+            path = paths[0] if os.path.isdir(paths[0]) else os.path.split(paths[0])[0]
+            cmd = f'tree "{path}" /a /f'  # Linux needs this installed.
+            try:
+                cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
+                sc.create_new_view(self.window, cp.stdout)
+            except Exception as e:
+                sc.create_new_view(self.window, f'Well, that did not go well: {e}\n{cp.stderr}')
 
-#         cmd = '???'
-#         if platform.system() == 'Windows':
-#             ver = float(platform.win32_ver()[0])
-#             # slog(sc.CAT_INF, ver)
-#             cmd = f'wt -d "{path}"' if ver >= 10 else f'cmd /K "cd {path}"'
-#         else:
-#             cmd = f'gnome-terminal --working-directory="{path}"'
-
-#         subprocess.run(cmd, shell=False, check=False)
-
-#     def is_visible(self):
-#         fn = self.window.active_view().file_name()
-#         return fn is not None
+    def is_visible(self, paths):
+        vis = platform.system() == 'Windows' and len(paths) > 0
+        return vis
 
 
-# #-----------------------------------------------------------------------------------
-# class SbotUtilsExecCommand(sublime_plugin.WindowCommand):
-#     '''
-#     Simple executioner for exes/cmds without args, like you double clicked it.
-#     Assumes file associations are set to preferences.
-#     '''
-
-#     def run(self):
-#         fn = self.window.active_view().file_name()
-#         if fn is not None:
-#             ext = os.path.splitext(fn)[1]
-#             if ext in ['.py']:
-#                 sc.run_script(fn, self.window)
-#             else:
-#                 sc.start_file(fn)
-
-#     def is_visible(self):
-#         # Assumes caller knows what they are doing.
-#         fn = self.window.active_view().file_name()
-#         if fn is None:
-#             return False
-#         else:
-#             return True
-
-
-# #-----------------------------------------------------------------------------------
-# class SbotUtilsRunScriptCommand(sublime_plugin.WindowCommand):
-#     ''' Script runner. Currently only python. '''
-
-#     def run(self):
-#         fn = self.window.active_view().file_name()
-#         sc.run_script(fn, self.window)
-
-#     def is_visible(self):
-#         vis = False
-#         fn = self.window.active_view().file_name()
-#         if fn is not None:
-#             ext = os.path.splitext(fn)[1]
-#             vis = ext in ['.py'] and (platform.system() == 'Windows' or platform.system() == 'Linux')
-#         return vis
