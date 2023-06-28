@@ -4,6 +4,7 @@ import re
 import platform
 import pathlib
 import subprocess
+import shutil
 import sublime
 import sublime_plugin
 from . import sbot_common as sc
@@ -88,7 +89,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
                 errors = data.stderr
                 if len(errors) > 0:
                     output = output + '============ stderr =============\n' + errors
-                create_new_view(self.window, output)
+                sc.create_new_view(self.window, output)
             else:
                 if platform.system() == 'Darwin':
                     ret = subprocess.call(('open', path))
@@ -97,7 +98,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
                 else:  # linux variants
                     re = subprocess.call(('xdg-open', path))
         except Exception as e:
-            slog(CAT_ERR, f'{e}')
+            sc.slog(sc.CAT_ERR, f'{e}')
 
     def is_visible(self, paths=None):
         # Ensure file only.
@@ -115,7 +116,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
         cmd = '???'
         if platform.system() == 'Windows':
             ver = float(platform.win32_ver()[0])
-            # slog(CAT_INF, ver)
+            # sc.slog(sc.CAT_INF, ver)
             cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
         else: # mac/linux
             cmd = f'gnome-terminal --working-directory="{dir}"'
