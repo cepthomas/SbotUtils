@@ -47,66 +47,66 @@ class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
             window.active_view().run_command("goto_line", {"line": sel_row})
 
 
-#-----------------------------------------------------------------------------------
-class SbotUtilsTerminalCommand(sublime_plugin.WindowCommand):
-    ''' Open terminal here. '''
+# #-----------------------------------------------------------------------------------
+# class SbotUtilsTerminalCommand(sublime_plugin.WindowCommand):
+#     ''' Open terminal here. '''
 
-    def run(self):
-        fn = self.window.active_view().file_name()
-        path = os.path.split(fn)[0]
+#     def run(self):
+#         fn = self.window.active_view().file_name()
+#         path = os.path.split(fn)[0]
 
-        cmd = '???'
-        if platform.system() == 'Windows':
-            ver = float(platform.win32_ver()[0])
-            # slog(sc.CAT_INF, ver)
-            cmd = f'wt -d "{path}"' if ver >= 10 else f'cmd /K "cd {path}"'
-        else:
-            cmd = f'gnome-terminal --working-directory="{path}"'
+#         cmd = '???'
+#         if platform.system() == 'Windows':
+#             ver = float(platform.win32_ver()[0])
+#             # slog(sc.CAT_INF, ver)
+#             cmd = f'wt -d "{path}"' if ver >= 10 else f'cmd /K "cd {path}"'
+#         else:
+#             cmd = f'gnome-terminal --working-directory="{path}"'
 
-        subprocess.run(cmd, shell=False, check=False)
+#         subprocess.run(cmd, shell=False, check=False)
 
-    def is_visible(self):
-        fn = self.window.active_view().file_name()
-        return fn is not None
-
-
-#-----------------------------------------------------------------------------------
-class SbotUtilsExecCommand(sublime_plugin.WindowCommand):
-    '''
-    Simple executioner for exes/cmds without args, like you double clicked it.
-    Assumes file associations are set to preferences.
-    '''
-
-    def run(self):
-        fn = self.window.active_view().file_name()
-        if fn is not None:
-            ext = os.path.splitext(fn)[1]
-            if ext in ['.py']:
-                sc.run_script(fn, self.window)
-            else:
-                sc.start_file(fn)
-
-    def is_visible(self):
-        # Assumes caller knows what they are doing.
-        fn = self.window.active_view().file_name()
-        if fn is None:
-            return False
-        else:
-            return True
+#     def is_visible(self):
+#         fn = self.window.active_view().file_name()
+#         return fn is not None
 
 
-#-----------------------------------------------------------------------------------
-class SbotUtilsRunScriptCommand(sublime_plugin.WindowCommand):
-    ''' Script runner. Currently only python. '''
+# #-----------------------------------------------------------------------------------
+# class SbotUtilsExecCommand(sublime_plugin.WindowCommand):
+#     '''
+#     Simple executioner for exes/cmds without args, like you double clicked it.
+#     Assumes file associations are set to preferences.
+#     '''
 
-    def run(self):
-        fn = self.window.active_view().file_name()
-        sc.run_script(fn, self.window)
+#     def run(self):
+#         fn = self.window.active_view().file_name()
+#         if fn is not None:
+#             ext = os.path.splitext(fn)[1]
+#             if ext in ['.py']:
+#                 sc.run_script(fn, self.window)
+#             else:
+#                 sc.start_file(fn)
 
-    def is_visible(self):
-        vis = False
-        fn = self.window.active_view().file_name()
-        if fn is not None:
-            ext = os.path.splitext(fn)[1]
-            vis = ext in ['.py'] and (platform.system() == 'Windows' or platform.system() == 'Linux')
-        return vis
+#     def is_visible(self):
+#         # Assumes caller knows what they are doing.
+#         fn = self.window.active_view().file_name()
+#         if fn is None:
+#             return False
+#         else:
+#             return True
+
+
+# #-----------------------------------------------------------------------------------
+# class SbotUtilsRunScriptCommand(sublime_plugin.WindowCommand):
+#     ''' Script runner. Currently only python. '''
+
+#     def run(self):
+#         fn = self.window.active_view().file_name()
+#         sc.run_script(fn, self.window)
+
+#     def is_visible(self):
+#         vis = False
+#         fn = self.window.active_view().file_name()
+#         if fn is not None:
+#             ext = os.path.splitext(fn)[1]
+#             vis = ext in ['.py'] and (platform.system() == 'Windows' or platform.system() == 'Linux')
+#         return vis
