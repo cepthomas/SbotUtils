@@ -11,8 +11,6 @@ from . import sbot_common as sc
 
 # TODO Simple git tools: diff, commit, push? https://github.com/kemayo/sublime-text-git.
 
-UTILS_SETTINGS_FILE = "SbotUtils.sublime-settings"
-
 
 #-----------------------------------------------------------------------------------
 class SbotGeneralEvent(sublime_plugin.EventListener):
@@ -25,7 +23,7 @@ class SbotGeneralEvent(sublime_plugin.EventListener):
 
 
 #-----------------------------------------------------------------------------------
-class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
+class SbotSplitViewCommand(sublime_plugin.WindowCommand):
     ''' Toggles between split file views. '''
 
     def run(self):
@@ -48,21 +46,146 @@ class SbotUtilsSplitViewCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotUtilsTreeCommand(sublime_plugin.WindowCommand): # TODO was in Sidebar
+class SbotTreeCommand(sublime_plugin.WindowCommand):
     ''' Run tree command to a new view. '''
 
     def run(self, paths=None):
-        if len(paths) > 0:
-            path = paths[0] if os.path.isdir(paths[0]) else os.path.split(paths[0])[0]
-            cmd = f'tree "{path}" /a /f'  # Linux needs this installed.
-            try:
-                cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
-                sc.create_new_view(self.window, cp.stdout)
-            except Exception as e:
-                sc.create_new_view(self.window, f'Well, that did not go well: {e}\n{cp.stderr}')
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+        cmd = f'tree "{dir}" /a /f'  # Linux needs this installed.
+        try:
+            cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
+            sc.create_new_view(self.window, cp.stdout)
+        except Exception as e:
+            sc.create_new_view(self.window, f'Well, that did not go well: {e}\n{cp.stderr}')
 
-    def is_visible(self, paths):
-        vis = platform.system() == 'Windows' and len(paths) > 0
+    def is_visible(self, paths=None):
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+        vis = platform.system() == 'Windows'
         return vis
 
 
+#-----------------------------------------------------------------------------------
+class SbotExecCommand(sublime_plugin.WindowCommand): 
+    '''
+    Simple executioner for exes/cmds without args, like you double clicked it.
+    Assumes file associations are set to preferences.
+    Also runs scripts if supported. Currently only python. Creates a new view with output.
+    Supports context and sidebar menus.
+    '''
+
+    def run(self, paths=None):
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+
+        try:
+            # Determine if it is a supported script type.
+            ext = os.path.splitext(fn)[1]
+            if ext in ['.py']: # list of known script types/execute patterns
+                cmd = '???'
+                if ext == '.py':
+                    cmd = f'python "{path}"'
+                data = subprocess.run(cmd, capture_output=True, text=True)
+                output = data.stdout
+                errors = data.stderr
+                if len(errors) > 0:
+                    output = output + '============ stderr =============\n' + errors
+                create_new_view(self.window, output)
+            else:
+                if platform.system() == 'Darwin':
+                    ret = subprocess.call(('open', path))
+                elif platform.system() == 'Windows':
+                    os.startfile(path)
+                else:  # linux variants
+                    re = subprocess.call(('xdg-open', path))
+        except Exception as e:
+            slog(CAT_ERR, f'{e}')
+
+    def is_visible(self, paths=None):
+        # Ensure file only.
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+        return fn is not None
+
+
+#-----------------------------------------------------------------------------------
+class SbotTerminalCommand(sublime_plugin.WindowCommand):
+    ''' Open term in this directory. Supports context and sidebar menus. '''
+
+    def run(self, paths=None):
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+
+        cmd = '???'
+        if platform.system() == 'Windows':
+            ver = float(platform.win32_ver()[0])
+            # slog(CAT_INF, ver)
+            cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
+        else: # mac/linux
+            cmd = f'gnome-terminal --working-directory="{dir}"'
+        subprocess.run(cmd, shell=False, check=False)
+
+
+#-----------------------------------------------------------------------------------
+class SbotCopyNameCommand(sublime_plugin.WindowCommand):
+    ''' Get file or directory name to clipboard. Supports context and sidebar menus. '''
+
+    def run(self, paths=None):
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+        sublime.set_clipboard(os.path.split(path)[-1])
+
+#-----------------------------------------------------------------------------------
+class SbotCopyPathCommand(sublime_plugin.WindowCommand):
+    ''' Get file or directory path to clipboard. Supports context and sidebar menus. '''
+
+    def run(self, paths=None):
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+        sublime.set_clipboard(path)
+
+#-----------------------------------------------------------------------------------
+class SbotCopyFileCommand(sublime_plugin.WindowCommand):
+    ''' Copy selected file to the same dir. Supports context and sidebar menus. '''
+
+    def run(self, paths=None):
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+
+        # Find a valid file name.
+        ok = False
+        root, ext = os.path.splitext(path)
+        for i in range(1, 9):
+            newfn = f'{root}_{i}{ext}'
+            if not os.path.isfile(newfn):
+                shutil.copyfile(path, newfn)
+                ok = True
+                break
+
+        if not ok:
+            sublime.status_message("Couldn't copy file")
+
+    def is_visible(self, paths=None):
+        # Ensure file only.
+        dir, fn, path = _get_path(self.window.active_view(), paths)
+        return fn is not None
+
+
+#-----------------------------------------------------------------------------------
+def _get_path(view, paths):
+    ''' Returns (dir, fn, path). fn is None for a directory. '''
+
+    dir = None
+    fn = None
+
+    path = None
+
+    if paths is None:
+        # Get the view file.
+        path = view.file_name()
+    elif len(paths) > 0:
+        # Get the first element of paths - from sidebar.
+        path = paths[0]
+
+    if path is not None:
+        if os.path.isdir(path):
+            dir = path
+        else:
+            ps = os.path.split(path)
+            dir = ps[0]
+            fn = ps[1]
+
+    return (dir, fn, path)
