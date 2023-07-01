@@ -5,7 +5,7 @@ Context and Sidebar menus.
 
 Built for ST4 on Windows and Linux.
 
-- Display absolute text position in status bar.
+- Display absolute text position in status bar next to row/col.
 - One click view splitter that works like VS, Word, etc.
 - Execute current file (html, py, etc).
 - Open terminal in current dir.
@@ -21,6 +21,12 @@ Built for ST4 on Windows and Linux.
 | sbot_exec              | Context or Sidebar  | Run selected executable with output to new view     |           |
 | sbot_terminal          | Context or Sidebar  | Open a terminal here                                |           |
 | sbot_tree              | Context or Sidebar  | Run tree cmd to new view (win only)                 |           |
+
+Context menu items like:
+`{ "caption": "Copy Name", "command": "sbot_copy_name"},`
+
+Sidebar menu items like:
+`{ "caption": "Copy Name", "command": "sbot_copy_name", "args": {"paths": []} },`
 
 
 ## Settings
