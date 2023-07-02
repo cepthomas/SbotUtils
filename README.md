@@ -7,8 +7,8 @@ Built for ST4 on Windows and Linux.
 
 - Display absolute text position in status bar next to row/col.
 - One click view splitter that works like VS, Word, etc.
-- Execute current file (html, py, etc).
-- Open terminal in current dir.
+- Execute current file (html, py, etc) as if you double clicked it.
+- Open terminal in current path.
 
 
 ## Commands

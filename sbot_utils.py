@@ -10,9 +10,6 @@ import sublime_plugin
 from . import sbot_common as sc
 
 
-# TODO Simple git tools: diff, commit, push? https://github.com/kemayo/sublime-text-git.
-
-
 #-----------------------------------------------------------------------------------
 class SbotGeneralEvent(sublime_plugin.EventListener):
     ''' Listener for window events of interest. '''
@@ -51,7 +48,7 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
     ''' Run tree command to a new view. '''
 
     def run(self, paths=None):
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         cmd = f'tree "{dir}" /a /f'  # Linux needs this installed.
         try:
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
@@ -60,7 +57,7 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
             sc.create_new_view(self.window, f'Well, that did not go well: {e}\n{cp.stderr}')
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         vis = platform.system() == 'Windows'
         return vis
 
@@ -75,11 +72,11 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
     '''
 
     def run(self, paths=None):
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
 
         try:
             # Determine if it is a supported script type.
-            ext = os.path.splitext(fn)[1]
+            _, ext = os.path.splitext(fn)
             if ext in ['.py']: # list of known script types/execute patterns
                 cmd = '???'
                 if ext == '.py':
@@ -102,7 +99,7 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, paths=None):
         # Ensure file only.
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         return fn is not None
 
 
@@ -111,7 +108,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
     ''' Open term in this directory. Supports context and sidebar menus. '''
 
     def run(self, paths=None):
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
 
         cmd = '???'
         if platform.system() == 'Windows':
@@ -128,23 +125,25 @@ class SbotCopyNameCommand(sublime_plugin.WindowCommand):
     ''' Get file or directory name to clipboard. Supports context and sidebar menus. '''
 
     def run(self, paths=None):
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         sublime.set_clipboard(os.path.split(path)[-1])
+
 
 #-----------------------------------------------------------------------------------
 class SbotCopyPathCommand(sublime_plugin.WindowCommand):
     ''' Get file or directory path to clipboard. Supports context and sidebar menus. '''
 
     def run(self, paths=None):
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         sublime.set_clipboard(path)
+
 
 #-----------------------------------------------------------------------------------
 class SbotCopyFileCommand(sublime_plugin.WindowCommand):
     ''' Copy selected file to the same dir. Supports context and sidebar menus. '''
 
     def run(self, paths=None):
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
 
         # Find a valid file name.
         ok = False
@@ -161,13 +160,13 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, paths=None):
         # Ensure file only.
-        dir, fn, path = _get_path(self.window.active_view(), paths)
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         return fn is not None
 
 
 #-----------------------------------------------------------------------------------
-def _get_path(view, paths):
-    ''' Returns (dir, fn, path). fn is None for a directory. '''
+def _get_path_parts(view, paths):
+    ''' Returns (dir, fn, exp_path). fn is None for a directory. '''
 
     dir = None
     fn = None
@@ -182,11 +181,13 @@ def _get_path(view, paths):
         path = paths[0]
 
     if path is not None:
-        if os.path.isdir(path):
-            dir = path
-        else:
-            ps = os.path.split(path)
-            dir = ps[0]
-            fn = ps[1]
+        exp_path = sc.expand_vars(path)
+        if exp_path is None:
+            raise RuntimeError(f'Bad path:{path}')
 
-    return (dir, fn, path)
+        if os.path.isdir(exp_path):
+            dir = exp_path
+        else:
+            dir, fn = os.path.split(exp_path)
+
+    return (dir, fn, exp_path)
