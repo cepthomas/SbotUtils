@@ -166,11 +166,14 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 def _get_path_parts(view, paths):
-    ''' Returns (dir, fn, exp_path). fn is None for a directory. '''
+    ''' To support commands that can be sited in Sidebar and Context menus.
+        Returns (dir, fn, path).
+        fn will be None for a directory.
+        path is fully expanded path.
+    '''
 
     dir = None
     fn = None
-
     path = None
 
     if paths is None:
@@ -189,5 +192,6 @@ def _get_path_parts(view, paths):
             dir = exp_path
         else:
             dir, fn = os.path.split(exp_path)
+        path = exp_path
 
-    return (dir, fn, exp_path)
+    return (dir, fn, path)
