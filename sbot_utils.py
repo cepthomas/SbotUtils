@@ -128,7 +128,13 @@ class SbotCopyNameCommand(sublime_plugin.WindowCommand):
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        # sc.slog(sc.CAT_DBG, f'SbotCopyNameCommand, {dir}, {fn}, {path}')
         sublime.set_clipboard(os.path.split(path)[-1])
+
+    def is_visible(self, paths=None):
+        # Ensure valid file only.
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        return dir is not None and fn is not None
 
 
 #-----------------------------------------------------------------------------------
@@ -137,7 +143,13 @@ class SbotCopyPathCommand(sublime_plugin.WindowCommand):
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        # sc.slog(sc.CAT_DBG, f'SbotCopyPathCommand, {dir}, {fn}, {path}')
         sublime.set_clipboard(path)
+
+    def is_visible(self, paths=None):
+        # Ensure valid path.
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        return dir is not None
 
 
 #-----------------------------------------------------------------------------------
