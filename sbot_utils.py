@@ -77,12 +77,14 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         try:
             # Determine if it is a supported script type.
             _, ext = os.path.splitext(fn)
-            if ext in ['.py', '.lua']: # list of known script types/execute patterns
+            if ext in ['.py', '.lua', '.cmd', '.bat']: # list of known script types/execute patterns
                 cmd = '???'
                 if ext == '.py':
                     cmd = f'python "{path}"'
                 elif ext == '.lua':
                     cmd = f'lua "{path}"' # support LUA_PATH?
+                else:
+                    cmd = path
                 data = subprocess.run(cmd, capture_output=True, text=True)
                 output = data.stdout
                 errors = data.stderr
