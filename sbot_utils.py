@@ -1,8 +1,5 @@
-import sys
 import os
-import re
 import platform
-import pathlib
 import subprocess
 import shutil
 import sublime
@@ -17,7 +14,7 @@ class SbotGeneralEvent(sublime_plugin.EventListener):
     def on_selection_modified(self, view):
         ''' Show the abs position in the status bar. '''
         caret = sc.get_single_caret(view)
-        view.set_status("position", f'???' if caret is None else f'Pos {caret}')
+        view.set_status("position", '???' if caret is None else f'Pos {caret}')
 
 
 #-----------------------------------------------------------------------------------
@@ -57,8 +54,8 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
             sc.create_new_view(self.window, f'Well, that did not go well: {e}\n{cp.stderr}')
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        vis = platform.system() == 'Windows'
+        # paths=valid
+        vis = paths is not None and platform.system() == 'Windows'
         return vis
 
 
@@ -67,27 +64,30 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
     '''
     Simple executioner for exes/cmds without args, like you double clicked it.
     Assumes file associations are set to preferences.
-    Also runs scripts if supported. Currently only python. Creates a new view with output.
+    Also runs scripts if supported. Creates a new view with output.
     Supports context and sidebar menus.
     '''
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        if fn is None:
+            return
 
         try:
             # Determine if it is a supported script type.
             _, ext = os.path.splitext(fn)
-            if ext in ['.py', '.lua', '.cmd', '.bat']: # list of known script types/execute patterns
+            if ext in ['.py', '.lua', '.cmd', '.bat']:  # list of known script types/execute patterns
                 cmd = '???'
                 if ext == '.py':
                     cmd = f'python "{path}"'
                 elif ext == '.lua':
-                    cmd = f'lua "{path}"' # support LUA_PATH?
+                    cmd = f'lua "{path}"'  # support LUA_PATH?
                 else:
                     cmd = path
-                data = subprocess.run(cmd, capture_output=True, text=True)
-                output = data.stdout
-                errors = data.stderr
+                # cp = subprocess.run(cmd, capture_output=True, text=True, cwd=dir) # original
+                cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # , check=True)
+                output = cp.stdout
+                errors = cp.stderr
                 if len(errors) > 0:
                     output = output + '============ stderr =============\n' + errors
                 sc.create_new_view(self.window, output)
@@ -97,13 +97,16 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
                 elif platform.system() == 'Windows':
                     os.startfile(path)
                 else:  # linux variants
-                    re = subprocess.call(('xdg-open', path))
+                    ret = subprocess.call(('xdg-open', path))
         except Exception as e:
-            sc.slog(sc.CAT_ERR, f'{e}')
+            if e is None:
+                sc.slog(sc.CAT_ERR, "???")
+            else:
+                sc.slog(sc.CAT_ERR, e)
 
     def is_visible(self, paths=None):
-        # Ensure valid file only.
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        # fn=valid
         return fn is not None
 
 
@@ -113,15 +116,22 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        if dir is None:
+            return
 
         cmd = '???'
         if platform.system() == 'Windows':
             ver = float(platform.win32_ver()[0])
             # sc.slog(sc.CAT_INF, ver)
             cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
-        else: # mac/linux
+        else:  # mac/linux
             cmd = f'gnome-terminal --working-directory="{dir}"'
         subprocess.run(cmd, shell=False, check=False)
+
+    def is_visible(self, paths=None):
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        # dir=valid  
+        return dir is not None
 
 
 #-----------------------------------------------------------------------------------
@@ -130,13 +140,13 @@ class SbotCopyNameCommand(sublime_plugin.WindowCommand):
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        # sc.slog(sc.CAT_DBG, f'SbotCopyNameCommand, {dir}, {fn}, {path}')
-        sublime.set_clipboard(os.path.split(path)[-1])
+        if path is not None:
+            sublime.set_clipboard(os.path.split(path)[-1])
 
     def is_visible(self, paths=None):
-        # Ensure valid file only.
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        return dir is not None and fn is not None
+        # path=valid
+        return path is not None
 
 
 #-----------------------------------------------------------------------------------
@@ -145,13 +155,13 @@ class SbotCopyPathCommand(sublime_plugin.WindowCommand):
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        # sc.slog(sc.CAT_DBG, f'SbotCopyPathCommand, {dir}, {fn}, {path}')
-        sublime.set_clipboard(path)
+        if path is not None:
+            sublime.set_clipboard(path)
 
     def is_visible(self, paths=None):
-        # Ensure valid path.
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        return dir is not None
+        # path=valid
+        return path is not None
 
 
 #-----------------------------------------------------------------------------------
@@ -175,9 +185,9 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
             sublime.status_message("Couldn't copy file")
 
     def is_visible(self, paths=None):
-        # Ensure file only.
+        # paths:valid  fn:valid
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        return fn is not None
+        return paths is not None and fn is not None
 
 
 #-----------------------------------------------------------------------------------
@@ -192,11 +202,11 @@ def _get_path_parts(view, paths):
     fn = None
     path = None
 
-    if paths is None:
+    if paths is None:  # from view menu
         # Get the view file.
         path = view.file_name()
-    elif len(paths) > 0:
-        # Get the first element of paths - from sidebar.
+    elif len(paths) > 0:  # from sidebar
+        # Get the first element of paths.
         path = paths[0]
 
     if path is not None:
