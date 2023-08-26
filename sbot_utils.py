@@ -60,11 +60,9 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotExecCommand(sublime_plugin.WindowCommand): 
+class SbotOpenCommand(sublime_plugin.WindowCommand): 
     '''
-    Simple executioner for exes/cmds without args, like you double clicked it.
-    Assumes file associations are set to preferences.
-    Also runs scripts if supported. Creates a new view with output.
+    Acts as if you had clicked the file in explorer, honors your file associations.
     Supports context and sidebar menus.
     '''
 
@@ -74,30 +72,12 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
             return
 
         try:
-            # Determine if it is a supported script type.
-            _, ext = os.path.splitext(fn)
-            if ext in ['.py', '.lua', '.cmd', '.bat']:  # list of known script types/execute patterns
-                cmd = '???'
-                if ext == '.py':
-                    cmd = f'python "{path}"'
-                elif ext == '.lua':
-                    cmd = f'lua "{path}"'  # support LUA_PATH?
-                else:
-                    cmd = path
-                # cp = subprocess.run(cmd, capture_output=True, text=True, cwd=dir) # original
-                cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # , check=True)
-                output = cp.stdout
-                errors = cp.stderr
-                if len(errors) > 0:
-                    output = output + '============ stderr =============\n' + errors
-                sc.create_new_view(self.window, output)
-            else:
-                if platform.system() == 'Darwin':
-                    ret = subprocess.call(('open', path))
-                elif platform.system() == 'Windows':
-                    os.startfile(path)
-                else:  # linux variants
-                    ret = subprocess.call(('xdg-open', path))
+            if platform.system() == 'Darwin':
+                ret = subprocess.call(('open', path))
+            elif platform.system() == 'Windows':
+                os.startfile(path)
+            else:  # linux variants
+                ret = subprocess.call(('xdg-open', path))
         except Exception as e:
             if e is None:
                 sc.slog(sc.CAT_ERR, "???")
@@ -108,6 +88,48 @@ class SbotExecCommand(sublime_plugin.WindowCommand):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         # fn=valid
         return fn is not None
+
+
+#-----------------------------------------------------------------------------------
+class SbotRunCommand(sublime_plugin.WindowCommand): 
+    '''
+    - If the clicked file is a script (py/lua/cmd/bat), it is executed and the output presented in a new view.
+    - Supports context and sidebar menus.
+    '''
+    def run(self, paths=None):
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        _, ext = os.path.splitext(fn)
+
+        try:
+            cmd = '???'
+            if ext == '.py':
+                cmd = f'python "{path}"'
+            elif ext == '.lua':
+                cmd = f'lua "{path}"'  # support LUA_PATH?
+            else:
+                cmd = path
+            # cp = subprocess.run(cmd, capture_output=True, text=True, cwd=dir) # original
+            cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # , check=True)
+            output = cp.stdout
+            errors = cp.stderr
+            if len(errors) > 0:
+                output = output + '============ stderr =============\n' + errors
+            sc.create_new_view(self.window, output)
+        except Exception as e:
+            if e is None:
+                sc.slog(sc.CAT_ERR, "???")
+            else:
+                sc.slog(sc.CAT_ERR, e)
+
+    def is_visible(self, paths=None):
+        vis = True
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        if fn is None:
+            vis = False
+        else:
+            _, ext = os.path.splitext(fn)
+            vis = ext in ['.py', '.lua', '.cmd', '.bat', '.sh']  # list of known script types
+        return vis
 
 
 #-----------------------------------------------------------------------------------

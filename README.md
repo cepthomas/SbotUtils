@@ -7,7 +7,8 @@ Built for ST4 on Windows and Linux.
 
 - Display absolute text position in status bar next to row/col.
 - One click view splitter that works like VS, Word, etc.
-- Execute current file (html, py, etc) as if you double clicked it.
+- Run a script file (py, lua, cmd, bat, sh) and show the output.
+- Open current file (html, py, etc) as if you double clicked it.
 - Open terminal in current path.
 
 
@@ -18,7 +19,8 @@ Built for ST4 on Windows and Linux.
 | sbot_copy_name         | Context or Sidebar  | Copy file/dir name to clipboard                     |           |
 | sbot_copy_path         | Context or Sidebar  | Copy full file/dir path to clipboard                |           |
 | sbot_copy_file         | Context or Sidebar  | Copy selected file to a new file in the same folder |           |
-| sbot_exec              | Context or Sidebar  | Run selected executable with output to new view     |           |
+| sbot_run               | Context or Sidebar  | Run selected script with output to new view         |           |
+| sbot_open              | Context             | Like you clicked it in explorer                     |           |
 | sbot_terminal          | Context or Sidebar  | Open a terminal here                                |           |
 | sbot_tree              | Context or Sidebar  | Run tree cmd to new view (win only)                 |           |
 
