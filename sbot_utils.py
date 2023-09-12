@@ -65,7 +65,6 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
     Acts as if you had clicked the file in explorer, honors your file associations.
     Supports context and sidebar menus.
     '''
-
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         if fn is None:
@@ -85,8 +84,8 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
                 sc.slog(sc.CAT_ERR, e)
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         # fn=valid
+        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         return fn is not None
 
 
@@ -96,6 +95,9 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
     - If the clicked file is a script (py/lua/cmd/bat), it is executed and the output presented in a new view.
     - Supports context and sidebar menus.
     '''
+
+    _script_types = ['.py', '.lua', '.cmd', '.bat', '.sh']  # list of known script types
+
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         _, ext = os.path.splitext(fn)
@@ -106,8 +108,11 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
                 cmd = f'python "{path}"'
             elif ext == '.lua':
                 cmd = f'lua "{path}"'  # support LUA_PATH?
-            else:
+            elif ext in self._script_types:
                 cmd = path
+            else:
+                return
+
             # cp = subprocess.run(cmd, capture_output=True, text=True, cwd=dir) # original
             cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # , check=True)
             output = cp.stdout
@@ -128,7 +133,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
             vis = False
         else:
             _, ext = os.path.splitext(fn)
-            vis = ext in ['.py', '.lua', '.cmd', '.bat', '.sh']  # list of known script types
+            vis = ext in self._script_types
         return vis
 
 

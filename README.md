@@ -20,7 +20,7 @@ Built for ST4 on Windows and Linux.
 | sbot_copy_path         | Context or Sidebar  | Copy full file/dir path to clipboard                |           |
 | sbot_copy_file         | Context or Sidebar  | Copy selected file to a new file in the same folder |           |
 | sbot_run               | Context or Sidebar  | Run selected script with output to new view         |           |
-| sbot_open              | Context             | Like you clicked it in explorer                     |           |
+| sbot_open              | Context or Sidebar  | Like you clicked it in explorer                     |           |
 | sbot_terminal          | Context or Sidebar  | Open a terminal here                                |           |
 | sbot_tree              | Context or Sidebar  | Run tree cmd to new view (win only)                 |           |
 
