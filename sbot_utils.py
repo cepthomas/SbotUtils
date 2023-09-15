@@ -6,6 +6,8 @@ import sublime
 import sublime_plugin
 from . import sbot_common as sc
 
+# TODO Close all temp windows (e.g. after Run). Or reuse views from create_new_view()?
+
 
 #-----------------------------------------------------------------------------------
 class SbotGeneralEvent(sublime_plugin.EventListener):
