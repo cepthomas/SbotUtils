@@ -6,7 +6,7 @@ import sublime
 import sublime_plugin
 from . import sbot_common as sc
 
-# TODO2 Close all temp windows (e.g. after Run). Or reuse views from create_new_view()?
+# TODO Close all temp windows (e.g. after Run). Or reuse views from create_new_view()?
 
 
 #-----------------------------------------------------------------------------------
@@ -48,8 +48,8 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        cmd = f'tree "{dir}" /a /f'  # Linux needs this installed.
         try:
+            cmd = f'tree "{dir}" /a /f'  # Linux needs this installed. sudo apt-get install tree 
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
             sc.create_new_view(self.window, cp.stdout)
         except Exception as e:
@@ -57,7 +57,7 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, paths=None):
         # paths=valid
-        vis = paths is not None and platform.system() == 'Windows' #TODOL
+        vis = paths is not None
         return vis
 
 
@@ -77,7 +77,7 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
                 ret = subprocess.call(('open', path))
             elif platform.system() == 'Windows':
                 os.startfile(path)
-            else:  # linux variants #TODOL
+            else:  # linux variants
                 ret = subprocess.call(('xdg-open', path))
         except Exception as e:
             if e is None:
@@ -153,7 +153,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
             ver = float(platform.win32_ver()[0])
             # sc.slog(sc.CAT_INF, ver)
             cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
-        else:  # mac/linux #TODOL
+        else:  # linux
             cmd = f'gnome-terminal --working-directory="{dir}"'
         subprocess.run(cmd, shell=False, check=False)
 
