@@ -6,7 +6,6 @@ import sublime
 import sublime_plugin
 from . import sbot_common as sc
 
-# TODO Close all temp windows (e.g. after Run). Or reuse views from create_new_view()?
 
 
 #-----------------------------------------------------------------------------------
@@ -49,7 +48,7 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         try:
-            cmd = f'tree "{dir}" /a /f'  # Linux needs this installed. sudo apt-get install tree 
+            cmd = f'tree "{dir}" /a /f'
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
             sc.create_new_view(self.window, cp.stdout)
         except Exception as e:

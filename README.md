@@ -5,6 +5,8 @@ Context and Sidebar menus.
 
 Built for ST4 on Windows and Linux.
 
+For the tree command, Linux needs something like: `sudo apt-get install tree`
+
 - Display absolute text position in status bar next to row/col.
 - One click view splitter that works like VS, Word, etc.
 - Run a script file (py, lua, cmd, bat, sh) and show the output.
