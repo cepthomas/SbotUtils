@@ -102,31 +102,32 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        _, ext = os.path.splitext(fn)
+        if fn is not None:
+            _, ext = os.path.splitext(fn)
 
-        try:
-            cmd = '???'
-            if ext == '.py':
-                cmd = f'python "{path}"'
-            elif ext == '.lua':
-                cmd = f'lua "{path}"'  # support LUA_PATH?
-            elif ext in self._script_types:
-                cmd = path
-            else:
-                return
+            try:
+                cmd = '???'
+                if ext == '.py':
+                    cmd = f'python "{path}"'
+                elif ext == '.lua':
+                    cmd = f'lua "{path}"'  # support LUA_PATH?
+                elif ext in self._script_types:
+                    cmd = path
+                else:
+                    return
 
-            # cp = subprocess.run(cmd, capture_output=True, text=True, cwd=dir) # original
-            cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # , check=True)
-            output = cp.stdout
-            errors = cp.stderr
-            if len(errors) > 0:
-                output = output + '============ stderr =============\n' + errors
-            sc.create_new_view(self.window, output)
-        except Exception as e:
-            if e is None:
-                sc.slog(sc.CAT_ERR, "???")
-            else:
-                sc.slog(sc.CAT_ERR, e)
+                # cp = subprocess.run(cmd, capture_output=True, text=True, cwd=dir) # original
+                cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # , check=True)
+                output = cp.stdout
+                errors = cp.stderr
+                if len(errors) > 0:
+                    output = output + '============ stderr =============\n' + errors
+                sc.create_new_view(self.window, output)
+            except Exception as e:
+                if e is None:
+                    sc.slog(sc.CAT_ERR, "???")
+                else:
+                    sc.slog(sc.CAT_ERR, e)
 
     def is_visible(self, paths=None):
         vis = True
