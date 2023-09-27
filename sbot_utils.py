@@ -7,6 +7,9 @@ import sublime_plugin
 from . import sbot_common as sc
 
 
+# Known file types.
+SCRIPT_TYPES = ['.py', '.lua', '.cmd', '.bat', '.sh']
+
 
 #-----------------------------------------------------------------------------------
 class SbotGeneralEvent(sublime_plugin.EventListener):
@@ -93,11 +96,10 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
 #-----------------------------------------------------------------------------------
 class SbotRunCommand(sublime_plugin.WindowCommand): 
     '''
-    - If the clicked file is a script (py/lua/cmd/bat), it is executed and the output presented in a new view.
+    - If the clicked file is a script, it is executed and the output presented in a new view.
     - Supports context and sidebar menus.
     '''
-
-    _script_types = ['.py', '.lua', '.cmd', '.bat', '.sh']  # list of known script types
+    # global SCRIPT_TYPES
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
@@ -110,7 +112,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
                     cmd = f'python "{path}"'
                 elif ext == '.lua':
                     cmd = f'lua "{path}"'  # support LUA_PATH?
-                elif ext in self._script_types:
+                elif ext in SCRIPT_TYPES:
                     cmd = path
                 else:
                     return
@@ -135,7 +137,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
             vis = False
         else:
             _, ext = os.path.splitext(fn)
-            vis = ext in self._script_types
+            vis = ext in SCRIPT_TYPES
         return vis
 
 
