@@ -76,15 +76,13 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
 
         try:
             if platform.system() == 'Darwin':
-                ret = subprocess.call(('open', path))
+                subprocess.call(('open', path))
             elif platform.system() == 'Windows':
                 os.startfile(path)
             else:  # linux variants
-                ret = subprocess.call(('xdg-open', path))
+                subprocess.call(('xdg-open', path))
         except Exception as e:
-            if e is None:
-                sc.slog(sc.CAT_ERR, "???")
-            else:
+            if e is not None:
                 sc.slog(sc.CAT_ERR, e)
 
     def is_visible(self, paths=None):
