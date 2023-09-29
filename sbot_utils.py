@@ -71,22 +71,10 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
     '''
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
-        if fn is None:
-            return
-
-        try:
-            if platform.system() == 'Darwin':
-                subprocess.call(('open', path))
-            elif platform.system() == 'Windows':
-                os.startfile(path)
-            else:  # linux variants
-                subprocess.call(('xdg-open', path))
-        except Exception as e:
-            if e is not None:
-                sc.slog(sc.CAT_ERR, e)
+        if fn is not None:
+            sc.open_file(fn)
 
     def is_visible(self, paths=None):
-        # fn=valid
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         return fn is not None
 
@@ -97,8 +85,6 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
     - If the clicked file is a script, it is executed and the output presented in a new view.
     - Supports context and sidebar menus.
     '''
-    # global SCRIPT_TYPES
-
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         if fn is not None:
