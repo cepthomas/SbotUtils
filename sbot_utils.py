@@ -72,7 +72,7 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         if fn is not None:
-            sc.open_file(fn)
+            sc.open_file(path)
 
     def is_visible(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
@@ -82,8 +82,8 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
 #-----------------------------------------------------------------------------------
 class SbotRunCommand(sublime_plugin.WindowCommand): 
     '''
-    - If the clicked file is a script, it is executed and the output presented in a new view.
-    - Supports context and sidebar menus.
+    If the clicked file is a script, it is executed and the output presented in a new view.
+    Supports context and sidebar menus.
     '''
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
@@ -127,7 +127,10 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 class SbotTerminalCommand(sublime_plugin.WindowCommand):
-    ''' Open term in this directory. Supports context and sidebar menus. '''
+    '''
+    Open term in this directory.
+    Supports context and sidebar menus.
+    '''
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
@@ -151,7 +154,10 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 class SbotCopyNameCommand(sublime_plugin.WindowCommand):
-    ''' Get file or directory name to clipboard. Supports context and sidebar menus. '''
+    '''
+    Get file or directory name to clipboard.
+    Supports context and sidebar menus.
+    '''
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
@@ -166,7 +172,10 @@ class SbotCopyNameCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 class SbotCopyPathCommand(sublime_plugin.WindowCommand):
-    ''' Get file or directory path to clipboard. Supports context and sidebar menus. '''
+    '''
+    Get file or directory path to clipboard.
+    Supports context and sidebar menus.
+    '''
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
@@ -181,7 +190,10 @@ class SbotCopyPathCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 class SbotCopyFileCommand(sublime_plugin.WindowCommand):
-    ''' Copy selected file to the same dir. Supports context and sidebar menus. '''
+    '''
+    Copy selected file to the same dir.
+    Supports context and sidebar menus.
+    '''
 
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
@@ -207,10 +219,11 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
 
 #-----------------------------------------------------------------------------------
 def _get_path_parts(view, paths):
-    ''' To support commands that can be sited in Sidebar and Context menus.
-        Returns (dir, fn, path).
-        fn will be None for a directory.
-        path is fully expanded path.
+    '''
+    To support commands that can be sited in Sidebar and Context menus.
+    Returns (dir, fn, path).
+    fn will be None for a directory.
+    path is fully expanded path.
     '''
 
     dir = None
