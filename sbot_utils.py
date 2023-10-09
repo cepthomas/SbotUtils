@@ -108,10 +108,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
                     output = output + '============ stderr =============\n' + errors
                 sc.create_new_view(self.window, output)
             except Exception as e:
-                if e is None:
-                    sc.slog(sc.CAT_ERR, "???")
-                else:
-                    sc.slog(sc.CAT_ERR, e)
+                sc.slog(sc.CAT_ERR, e)
 
     def is_visible(self, paths=None):
         vis = True
@@ -214,7 +211,6 @@ def _get_path_parts(view, paths):
     path is fully expanded path or None if invalid.
     fn is None for a directory.
     '''
-
     dir = None
     fn = None
     path = None
@@ -228,8 +224,8 @@ def _get_path_parts(view, paths):
 
     if path is not None:
         exp_path = sc.expand_vars(path)
-        if exp_path is None:
-            sc.slog(sc.CAT_ERR, f'Bad path:{path}')
+        # if exp_path is None:
+        #     sc.slog(sc.CAT_ERR, f'Bad path:{path}')
 
         if os.path.isdir(exp_path):
             dir = exp_path
