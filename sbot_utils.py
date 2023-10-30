@@ -79,7 +79,7 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotRunCommand(sublime_plugin.WindowCommand): #TODO a way to build command lines with args
+class SbotRunCommand(sublime_plugin.WindowCommand): #TODO2 a way to build command lines with args
     '''
     If the clicked file is a script, it is executed and the output presented in a new view.
     Supports context and sidebar menus.
