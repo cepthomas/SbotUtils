@@ -79,10 +79,11 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotRunCommand(sublime_plugin.WindowCommand): #TODO a way to build command lines with args
+class SbotRunCommand(sublime_plugin.WindowCommand):
     '''
     If the clicked file is a script, it is executed and the output presented in a new view.
     Supports context and sidebar menus.
+    FUTURE simple way to add args.
     '''
     def run(self, paths=None):
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
