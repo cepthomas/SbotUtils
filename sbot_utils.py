@@ -83,26 +83,53 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
     '''
     If the clicked file is a script, it is executed and the output presented in a new view.
     Supports context and sidebar menus.
-    TODOF simple way to add args.
     '''
     def run(self, paths=None):
+        self.paths = paths
+        self.args = None
+
+        # Get user input for args - needs impl.
+        get_input = False
+
         dir, fn, path = _get_path_parts(self.window.active_view(), paths)
         if fn is not None:
             _, ext = os.path.splitext(fn)
 
+            if get_input:
+                self.window.show_input_panel(self.window.extract_variables()['folder'] + '>', "", self.on_done_input, None, None)
+            else:
+                self.execute()
+
+    def on_done_input(self, text):
+        self.args = text if len(text) > 0 else None
+        self.execute()
+
+    def execute(self):
+        # Assemble and execute.
+        dir, fn, path = _get_path_parts(self.window.active_view(), self.paths)
+        if fn is not None:
+            _, ext = os.path.splitext(fn)
+
             try:
-                cmd = '???'
+                cmd_list = []
                 if ext == '.py':
-                    cmd = f'python "{path}"'
+                    cmd_list.append('python')
+                    cmd_list.append(path)
                 elif ext == '.lua':
-                    cmd = f'lua "{path}"'  # support LUA_PATH?
+                    cmd_list.append('lua')
+                    cmd_list.append(path)  # support LUA_PATH?
                 elif ext in SCRIPT_TYPES:
-                    cmd = path
+                    cmd_list.append(path)
                 else:
+                    sc.slog(sc.CAT_WRN, f"Unsupported file type: {path}")
                     return
 
-                # cp = subprocess.run(cmd, capture_output=True, text=True, cwd=dir) # original
-                cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # , check=True)
+                if self.args:
+                    cmd_list.append(self.args)
+
+                cmd = ' '.join(cmd_list)
+
+                cp = subprocess.run(cmd, cwd=dir, universal_newlines=True, capture_output=True, shell=True)  # check=True)
                 output = cp.stdout
                 errors = cp.stderr
                 if len(errors) > 0:
