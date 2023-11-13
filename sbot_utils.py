@@ -7,6 +7,10 @@ import sublime_plugin
 from . import sbot_common as sc
 
 
+# TODOF goto file (C:\Users\cepth\OneDrive\OneDriveDocuments\tech\sublime\ST4\Default\comment.py) in non-notr files.
+#   => open_context_url  OpenContextUrlCommand(sublime_plugin.TextCommand)  https://farmanager.com/
+
+
 # Known file types.
 SCRIPT_TYPES = ['.py', '.lua', '.cmd', '.bat', '.sh']
 
