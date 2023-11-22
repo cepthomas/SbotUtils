@@ -7,10 +7,6 @@ import sublime_plugin
 from . import sbot_common as sc
 
 
-# TODOF goto file (C:\Users\cepth\OneDrive\OneDriveDocuments\tech\sublime\ST4\Default\comment.py) in non-notr files.
-#   => open_context_url  OpenContextUrlCommand(sublime_plugin.TextCommand)  https://farmanager.com/
-
-
 # Known file types.
 SCRIPT_TYPES = ['.py', '.lua', '.cmd', '.bat', '.sh']
 
@@ -121,7 +117,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
                     cmd_list.append(path)
                 elif ext == '.lua':
                     cmd_list.append('lua')
-                    cmd_list.append(path)  # support LUA_PATH?
+                    cmd_list.append(path)
                 elif ext in SCRIPT_TYPES:
                     cmd_list.append(path)
                 else:
