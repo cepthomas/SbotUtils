@@ -49,7 +49,7 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
     ''' Run tree command to a new view. '''
 
     def run(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         try:
             cmd = f'tree "{dir}" /a /f'
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
@@ -58,23 +58,30 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
             sc.create_new_view(self.window, f'Well, that did not go well: {e}\n{cp.stderr}')
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return dir is not None
 
 
 #-----------------------------------------------------------------------------------
 class SbotOpenCommand(sublime_plugin.WindowCommand): 
     '''
-    Acts as if you had clicked the file in explorer, honors your file associations.
+    Acts as if you had clicked the file in the UI, honors your file associations.
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if fn is not None:
-            sc.open_file(path)
+            # sc.open_file(path)
+            if platform.system() == 'Darwin':
+                ret = subprocess.call(('open', path))
+            elif platform.system() == 'Windows':
+                os.startfile(path)
+            else:  # linux variants
+                ret = subprocess.call(('xdg-open', path))
+            ok = True
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return fn is not None
 
 
@@ -91,7 +98,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
         # Get user input for args - needs impl.
         get_input = False
 
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if fn is not None:
             _, ext = os.path.splitext(fn)
 
@@ -106,7 +113,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
 
     def execute(self):
         # Assemble and execute.
-        dir, fn, path = _get_path_parts(self.window.active_view(), self.paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), self.paths)
 
         if fn is not None:
             _, ext = os.path.splitext(fn)
@@ -141,7 +148,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, paths=None):
         vis = True
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if fn is None:
             vis = False
         else:
@@ -157,7 +164,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if dir is not None:
             cmd = '???'
             if platform.system() == 'Windows':
@@ -169,7 +176,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
             subprocess.run(cmd, shell=False, check=False)
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return dir is not None
 
 
@@ -180,12 +187,12 @@ class SbotCopyNameCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if path is not None:
             sublime.set_clipboard(os.path.split(path)[-1])
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return path is not None
 
 
@@ -196,12 +203,12 @@ class SbotCopyPathCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if path is not None:
             sublime.set_clipboard(path)
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return path is not None
 
 
@@ -212,7 +219,7 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if fn is not None:
             # Find a valid file name.
             ok = False
@@ -228,38 +235,6 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
                 sublime.status_message("Couldn't copy file")
 
     def is_visible(self, paths=None):
-        dir, fn, path = _get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return fn is not None
-
-
-#-----------------------------------------------------------------------------------
-def _get_path_parts(view, paths):
-    '''
-    To support commands that can be sited in Sidebar and Context menus.
-    Returns (dir, fn, path).
-    path is fully expanded path or None if invalid.
-    fn is None for a directory.
-    '''
-    dir = None
-    fn = None
-    path = None
-
-    if paths is None:  # from view menu
-        # Get the view file.
-        path = view.file_name()
-    elif len(paths) > 0:  # from sidebar
-        # Get the first element of paths.
-        path = paths[0]
-
-    if path is not None:
-        exp_path = sc.expand_vars(path)
-        # if exp_path is None:
-        #     sc.slog(sc.CAT_ERR, f'Bad path:{path}')
-
-        if os.path.isdir(exp_path):
-            dir = exp_path
-        else:
-            dir, fn = os.path.split(exp_path)
-        path = exp_path
-
-    return (dir, fn, path)
+        
