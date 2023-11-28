@@ -107,6 +107,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
     def execute(self):
         # Assemble and execute.
         dir, fn, path = _get_path_parts(self.window.active_view(), self.paths)
+
         if fn is not None:
             _, ext = os.path.splitext(fn)
 
@@ -114,12 +115,12 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
                 cmd_list = []
                 if ext == '.py':
                     cmd_list.append('python')
-                    cmd_list.append(path)
+                    cmd_list.append(f'\"{path}\"')
                 elif ext == '.lua':
                     cmd_list.append('lua')
-                    cmd_list.append(path)
+                    cmd_list.append(f'\"{path}\"')
                 elif ext in SCRIPT_TYPES:
-                    cmd_list.append(path)
+                    cmd_list.append(f'\"{path}\"')
                 else:
                     sc.slog(sc.CAT_WRN, f"Unsupported file type: {path}")
                     return
