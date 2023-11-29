@@ -11,6 +11,9 @@ from . import sbot_common as sc
 # Known file types.
 SCRIPT_TYPES = ['.py', '.lua', '.cmd', '.bat', '.sh']
 
+# [optional](my/file.ext)
+rex = re.compile(r'\[(.*)\]\(([^\)]*)\)')
+
 
 #-----------------------------------------------------------------------------------
 class SbotGeneralEvent(sublime_plugin.EventListener):
@@ -23,11 +26,11 @@ class SbotGeneralEvent(sublime_plugin.EventListener):
 
 
 #-----------------------------------------------------------------------------------
-class SbotSplitViewCommand(sublime_plugin.WindowCommand):
+class SbotSplitViewCommand(sublime_plugin.TextCommand):
     ''' Toggles between split file views. '''
 
-    def run(self):
-        window = self.window
+    def run(self, edit):
+        window = self.view.window()
 
         if len(window.layout()['rows']) > 2:
             # Remove split.
@@ -36,13 +39,57 @@ class SbotSplitViewCommand(sublime_plugin.WindowCommand):
             window.run_command("set_layout", {"cols": [0.0, 1.0], "rows": [0.0, 1.0], "cells": [[0, 0, 1, 1]]})
         else:
             # Add split.
-            caret = sc.get_single_caret(window.active_view())
-            sel_row, _ = window.active_view().rowcol(caret)  # current sel
+            caret = sc.get_single_caret(self.view)
+            sel_row, _ = self.view.rowcol(caret)  # current sel
             window.run_command("set_layout", {"cols": [0.0, 1.0], "rows": [0.0, 0.5, 1.0], "cells": [[0, 0, 1, 1], [0, 1, 1, 2]]})
             window.run_command("focus_group", {"group": 0})
             window.run_command("clone_file")
             window.run_command("move_to_group", {"group": 1})
-            window.active_view().run_command("goto_line", {"line": sel_row})
+            self.view.run_command("goto_line", {"line": sel_row})
+
+
+#-----------------------------------------------------------------------------------
+class OpenContextPathCommand(sublime_plugin.TextCommand):
+    ''' Similar to and forked from open_context_url.py. '''
+
+    def name(self):
+        return 'open_context_path'
+
+    def run(self, edit, event):
+        path = self.find_path(event)
+        sc.open_path(path)
+
+    def is_visible(self, event):
+        return self.find_path(event) is not None
+
+    def find_path(self, event):
+        pt = self.view.window_to_text((event["x"], event["y"]))
+        line = self.view.line(pt) # Region
+        # Constrain for really long lines
+        line.a = max(line.a, pt - 1024)
+        line.b = min(line.b, pt + 1024)
+        # Get the text.
+        text = self.view.substr(line)
+
+        # Test all possible matches on the line against the one where the cursor is.
+        it = rex.finditer(text)
+        for match in it:
+            if match.start() <= (pt - line.a) and match.end() >= (pt - line.a):
+                path = match.group(2)
+                if os.path.exists(path):
+                    return path
+
+        return None
+
+    def description(self, event):
+        # For menu.
+        path = self.find_path(event)
+        if len(path) > 64:
+            path = path[0:64] + "..."
+        return "Open " + path
+
+    def want_event(self):
+        return True
 
 
 #-----------------------------------------------------------------------------------
@@ -50,7 +97,8 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
     ''' Run tree command to a new view. '''
 
     def run(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
+
         try:
             cmd = f'tree "{dir}" /a /f'
             cp = subprocess.run(cmd, universal_newlines=True, capture_output=True, shell=True, check=True)
@@ -59,7 +107,7 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
             sc.create_new_view(self.window, f'Well, that did not go well: {e}\n{cp.stderr}')
 
     def is_visible(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         return dir is not None
 
 
@@ -76,7 +124,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
         # Get user input for args - needs impl.
         get_input = False
 
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         if fn is not None:
             _, ext = os.path.splitext(fn)
 
@@ -91,7 +139,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
 
     def execute(self):
         # Assemble and execute.
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), self.paths)
+        dir, fn, path = sc.get_path_parts(self.window, self.paths)
 
         if fn is not None:
             _, ext = os.path.splitext(fn)
@@ -126,7 +174,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, paths=None):
         vis = True
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         if fn is None:
             vis = False
         else:
@@ -142,19 +190,12 @@ class SbotOpenCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         if fn is not None:
-            sc.open_path(fn)
-            # if platform.system() == 'Darwin':
-            #     ret = subprocess.call(('open', path))
-            # elif platform.system() == 'Windows':
-            #     os.startfile(path)
-            # else:  # linux variants
-            #     ret = subprocess.call(('xdg-open', path))
-            # ok = True
+            sc.open_path(path)
 
     def is_visible(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         return fn is not None
 
 
@@ -165,69 +206,13 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         if dir is not None:
-            sc.open_terminal(dir)
-
-            # cmd = '???'
-            # if platform.system() == 'Windows':
-            #     ver = float(platform.win32_ver()[0])
-            #     cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
-            # else:  # linux + mac(?)
-            #     cmd = f'gnome-terminal --working-directory="{dir}"'
-            # subprocess.run(cmd, shell=False, check=False)
+            sc.open_terminal(path)
 
     def is_visible(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         return dir is not None
-
-
-# [](my/file.ext)
-rex = re.compile(r'\[]\(([^\)]*)\)')
-
-#-----------------------------------------------------------------------------------
-class OpenContextPathCommand(sublime_plugin.TextCommand):
-    ''' Similar to and forked from open_context_url.py. '''
-
-    def name(self):
-        return 'open_context_path'
-
-    def run(self, edit, event):
-        path = self.find_path(event)
-        sc.open_file(path)
-
-    def is_visible(self, event):
-        return self.find_path(event) is not None
-
-    def find_path(self, event):
-        pt = self.view.window_to_text((event["x"], event["y"]))
-        line = self.view.line(pt) # Region
-        # Constrain for really long lines
-        line.a = max(line.a, pt - 1024)
-        line.b = min(line.b, pt + 1024)
-        # Get the text.
-        text = self.view.substr(line)
-
-        # Test all possible matches on the line against the one where the cursor is.
-        it = rex.finditer(text)
-        for match in it:
-            if match.start() <= (pt - line.a) and match.end() >= (pt - line.a):
-                path = match.group(1)
-                # path = text[match.start():match.end()]
-                if os.path.exists(path):
-                    return path
-
-        return None
-
-    def description(self, event):
-        # For menu.
-        path = self.find_path(event)
-        if len(path) > 64:
-            path = path[0:64] + "..."
-        return "Open " + path
-
-    def want_event(self):
-        return True
 
 
 #-----------------------------------------------------------------------------------
@@ -237,12 +222,12 @@ class SbotCopyNameCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         if path is not None:
             sublime.set_clipboard(os.path.split(path)[-1])
 
     def is_visible(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         return path is not None
 
 
@@ -253,12 +238,12 @@ class SbotCopyPathCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         if path is not None:
             sublime.set_clipboard(path)
 
     def is_visible(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         return path is not None
 
 
@@ -269,7 +254,7 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
     Supports context and sidebar menus.
     '''
     def run(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         if fn is not None:
             # Find a valid file name.
             ok = False
@@ -277,6 +262,7 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
             for i in range(1, 9):
                 newfn = f'{root}_{i}{ext}'
                 if not os.path.isfile(newfn):
+                    print(newfn)
                     shutil.copyfile(path, newfn)
                     ok = True
                     break
@@ -285,6 +271,5 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
                 sublime.status_message("Couldn't copy file")
 
     def is_visible(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        dir, fn, path = sc.get_path_parts(self.window, paths)
         return fn is not None
-        
