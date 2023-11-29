@@ -169,9 +169,8 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
             cmd = '???'
             if platform.system() == 'Windows':
                 ver = float(platform.win32_ver()[0])
-                # sc.slog(sc.CAT_INF, ver)
                 cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
-            else:  # linux
+            else:  # linux + mac(?)
                 cmd = f'gnome-terminal --working-directory="{dir}"'
             subprocess.run(cmd, shell=False, check=False)
 
