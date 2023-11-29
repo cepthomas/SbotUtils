@@ -2,6 +2,7 @@ import os
 import platform
 import subprocess
 import shutil
+import re
 import sublime
 import sublime_plugin
 from . import sbot_common as sc
@@ -60,29 +61,6 @@ class SbotTreeCommand(sublime_plugin.WindowCommand):
     def is_visible(self, paths=None):
         dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return dir is not None
-
-
-#-----------------------------------------------------------------------------------
-class SbotOpenCommand(sublime_plugin.WindowCommand): 
-    '''
-    Acts as if you had clicked the file in the UI, honors your file associations.
-    Supports context and sidebar menus.
-    '''
-    def run(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
-        if fn is not None:
-            # sc.open_file(path)
-            if platform.system() == 'Darwin':
-                ret = subprocess.call(('open', path))
-            elif platform.system() == 'Windows':
-                os.startfile(path)
-            else:  # linux variants
-                ret = subprocess.call(('xdg-open', path))
-            ok = True
-
-    def is_visible(self, paths=None):
-        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
-        return fn is not None
 
 
 #-----------------------------------------------------------------------------------
@@ -158,6 +136,29 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
+class SbotOpenCommand(sublime_plugin.WindowCommand): 
+    '''
+    Acts as if you had clicked the file in the UI, honors your file associations.
+    Supports context and sidebar menus.
+    '''
+    def run(self, paths=None):
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        if fn is not None:
+            sc.open_path(fn)
+            # if platform.system() == 'Darwin':
+            #     ret = subprocess.call(('open', path))
+            # elif platform.system() == 'Windows':
+            #     os.startfile(path)
+            # else:  # linux variants
+            #     ret = subprocess.call(('xdg-open', path))
+            # ok = True
+
+    def is_visible(self, paths=None):
+        dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
+        return fn is not None
+
+
+#-----------------------------------------------------------------------------------
 class SbotTerminalCommand(sublime_plugin.WindowCommand):
     '''
     Open term in this directory.
@@ -166,17 +167,67 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
     def run(self, paths=None):
         dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         if dir is not None:
-            cmd = '???'
-            if platform.system() == 'Windows':
-                ver = float(platform.win32_ver()[0])
-                cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
-            else:  # linux + mac(?)
-                cmd = f'gnome-terminal --working-directory="{dir}"'
-            subprocess.run(cmd, shell=False, check=False)
+            sc.open_terminal(dir)
+
+            # cmd = '???'
+            # if platform.system() == 'Windows':
+            #     ver = float(platform.win32_ver()[0])
+            #     cmd = f'wt -d "{dir}"' if ver >= 10 else f'cmd /K "cd {dir}"'
+            # else:  # linux + mac(?)
+            #     cmd = f'gnome-terminal --working-directory="{dir}"'
+            # subprocess.run(cmd, shell=False, check=False)
 
     def is_visible(self, paths=None):
         dir, fn, path = sc.get_path_parts(self.window.active_view(), paths)
         return dir is not None
+
+
+# [](my/file.ext)
+rex = re.compile(r'\[]\(([^\)]*)\)')
+
+#-----------------------------------------------------------------------------------
+class OpenContextPathCommand(sublime_plugin.TextCommand):
+    ''' Similar to and forked from open_context_url.py. '''
+
+    def name(self):
+        return 'open_context_path'
+
+    def run(self, edit, event):
+        path = self.find_path(event)
+        sc.open_file(path)
+
+    def is_visible(self, event):
+        return self.find_path(event) is not None
+
+    def find_path(self, event):
+        pt = self.view.window_to_text((event["x"], event["y"]))
+        line = self.view.line(pt) # Region
+        # Constrain for really long lines
+        line.a = max(line.a, pt - 1024)
+        line.b = min(line.b, pt + 1024)
+        # Get the text.
+        text = self.view.substr(line)
+
+        # Test all possible matches on the line against the one where the cursor is.
+        it = rex.finditer(text)
+        for match in it:
+            if match.start() <= (pt - line.a) and match.end() >= (pt - line.a):
+                path = match.group(1)
+                # path = text[match.start():match.end()]
+                if os.path.exists(path):
+                    return path
+
+        return None
+
+    def description(self, event):
+        # For menu.
+        path = self.find_path(event)
+        if len(path) > 64:
+            path = path[0:64] + "..."
+        return "Open " + path
+
+    def want_event(self):
+        return True
 
 
 #-----------------------------------------------------------------------------------
