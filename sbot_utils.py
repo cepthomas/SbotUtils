@@ -50,12 +50,13 @@ class SbotSplitViewCommand(sublime_plugin.TextCommand):
 
 #-----------------------------------------------------------------------------------
 class OpenContextPathCommand(sublime_plugin.TextCommand):
-    ''' Similar to and forked from open_context_url.py. '''
-
-    def name(self):
-        return 'open_context_path'
+    '''
+    Borrowed from open_context_url.py. Note that that file is now 
+    disabled and the function apparently implemented internally.
+    '''
 
     def run(self, edit, event):
+        # print(f'run() {event}')
         path = self.find_path(event)
         sc.open_path(path)
 
@@ -63,29 +64,23 @@ class OpenContextPathCommand(sublime_plugin.TextCommand):
         return self.find_path(event) is not None
 
     def find_path(self, event):
+        # Get the text.
         pt = self.view.window_to_text((event["x"], event["y"]))
         line = self.view.line(pt) # Region
-        # Constrain for really long lines
-        line.a = max(line.a, pt - 1024)
-        line.b = min(line.b, pt + 1024)
-        # Get the text.
         text = self.view.substr(line)
 
-        # Test all possible matches on the line against the one where the cursor is.
+        # Test all matches on the line against the one where the cursor is.
         it = rex.finditer(text)
         for match in it:
             if match.start() <= (pt - line.a) and match.end() >= (pt - line.a):
                 path = match.group(2)
                 if os.path.exists(path):
                     return path
-
         return None
 
     def description(self, event):
         # For menu.
         path = self.find_path(event)
-        if len(path) > 64:
-            path = path[0:64] + "..."
         return "Open " + path
 
     def want_event(self):
