@@ -49,7 +49,7 @@ class SbotSplitViewCommand(sublime_plugin.TextCommand):
 
 
 #-----------------------------------------------------------------------------------
-class OpenContextPathCommand(sublime_plugin.TextCommand):
+class SbotOpenContextPathCommand(sublime_plugin.TextCommand):
     '''
     Borrowed from open_context_url.py. Note that that file is now 
     disabled and the function apparently implemented internally.
@@ -85,6 +85,20 @@ class OpenContextPathCommand(sublime_plugin.TextCommand):
 
     def want_event(self):
         return True
+
+
+#-----------------------------------------------------------------------------------
+class SbotInsertTargetFromClipCommand(sublime_plugin.TextCommand):
+    ''' Insert target from clipboard in format to match SbotOpenContextPathCommand(). '''
+
+    def run(self, edit):
+        s = f'[]({sublime.get_clipboard()})'
+        caret = sc.get_single_caret(self.view)
+        self.view.insert(edit, caret, s)
+
+    def is_visible(self):
+        v = self.view
+        return sc.get_single_caret(v) is not None and sublime.get_clipboard() != ''
 
 
 #-----------------------------------------------------------------------------------
