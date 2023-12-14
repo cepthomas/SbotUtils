@@ -217,7 +217,7 @@ class SbotTerminalCommand(sublime_plugin.WindowCommand):
     def run(self, paths=None):
         dir, fn, path = sc.get_path_parts(self.window, paths)
         if dir is not None:
-            sc.open_terminal(path)
+            sc.open_terminal(dir)
 
     def is_visible(self, paths=None):
         dir, fn, path = sc.get_path_parts(self.window, paths)
