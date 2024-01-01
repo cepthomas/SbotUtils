@@ -164,7 +164,7 @@ class SbotRunCommand(sublime_plugin.WindowCommand):
                 elif ext in SCRIPT_TYPES:
                     cmd_list.append(f'\"{path}\"')
                 else:
-                    sc.slog(sc.CAT_WRN, f"Unsupported file type: {path}")
+                    # sc.slog(sc.CAT_WRN, f"Unsupported file type: {path}")
                     return
 
                 if self.args:
