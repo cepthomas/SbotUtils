@@ -8,7 +8,7 @@ import sublime_plugin
 from . import sbot_common as sc
 
 
-# TODO-FUTURE Delete file in view.
+# TODO Delete file in current view.
 
 # Known file types.
 SCRIPT_TYPES = ['.py', '.lua', '.cmd', '.bat', '.sh']
