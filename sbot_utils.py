@@ -259,7 +259,7 @@ class SbotCopyPathCommand(sublime_plugin.WindowCommand):
 
 
 #-----------------------------------------------------------------------------------
-class SbotCopyFileCommand(sublime_plugin.WindowCommand):
+class SbotCopyFileCommand(sublime_plugin.WindowCommand): # TODO1 use save as with default like below?
     '''
     Copy selected file to the same dir.
     Supports context and sidebar menus.
