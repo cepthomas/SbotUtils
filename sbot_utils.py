@@ -7,9 +7,6 @@ import sublime
 import sublime_plugin
 from . import sbot_common as sc
 
-
-# TODO Delete file in current view.
-
 # Known file types.
 SCRIPT_TYPES = ['.py', '.lua', '.cmd', '.bat', '.sh']
 
@@ -19,7 +16,7 @@ rex = re.compile(r'\[(.*)\]\(([^\)]*)\)')
 
 #-----------------------------------------------------------------------------------
 class SbotGeneralEvent(sublime_plugin.EventListener):
-    ''' Listener for window events of interest. '''
+    ''' Listener for window events of global interest. '''
 
     def on_selection_modified(self, view):
         ''' Show the abs position in the status bar. '''
@@ -283,4 +280,20 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, paths=None):
         dir, fn, path = sc.get_path_parts(self.window, paths)
+        return fn is not None
+
+
+#-----------------------------------------------------------------------------------
+class SbotDeleteFileCommand(sublime_plugin.WindowCommand):
+    '''
+    Delete the file in the current view.
+    Supports context and tab menus.
+    '''
+    def run(self): # , paths=None):
+        dir, fn, path = sc.get_path_parts(self.window, None)
+        if fn is not None:
+            self.window.run_command("delete_file", {"files": [path], "prompt": False})
+
+    def is_visible(self): #, paths=None):
+        dir, fn, path = sc.get_path_parts(self.window, None)
         return fn is not None
