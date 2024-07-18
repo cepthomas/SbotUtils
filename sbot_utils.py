@@ -55,7 +55,7 @@ class SbotOpenContextPathCommand(sublime_plugin.TextCommand):
     '''
 
     def run(self, edit, event):
-        # print(f'run() {event}')
+        print(f'>>> SbotOpenContextPathCommand.run() {event}')
         path = self.find_path(event)
         sc.open_path(path)
 
@@ -80,7 +80,7 @@ class SbotOpenContextPathCommand(sublime_plugin.TextCommand):
     def description(self, event):
         # For menu.
         path = self.find_path(event)
-        return "Open " + path
+        return "Open Path " + path
 
     def want_event(self):
         return True
