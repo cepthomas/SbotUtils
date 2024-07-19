@@ -55,7 +55,7 @@ class SbotOpenContextPathCommand(sublime_plugin.TextCommand):
     '''
 
     def run(self, edit, event):
-        print(f'>>> SbotOpenContextPathCommand.run() {event}')
+        # print(f'>>> SbotOpenContextPathCommand.run() {event}')
         path = self.find_path(event)
         sc.open_path(path)
 
@@ -270,7 +270,7 @@ class SbotCopyFileCommand(sublime_plugin.WindowCommand):
             for i in range(1, 9):
                 newfn = f'{root}_{i}{ext}'
                 if not os.path.isfile(newfn):
-                    print(newfn)
+                    # print(newfn)
                     shutil.copyfile(path, newfn)
                     ok = True
                     break

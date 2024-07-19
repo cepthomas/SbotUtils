@@ -12,7 +12,7 @@ For the tree command, Linux needs something like: `sudo apt-get install tree`
 - Run a script file (py, lua, cmd, bat, sh) and show the output.
 - Open file (html, py, etc) as if you double clicked it.
 - Open terminal in current path.
-- Open path under cursor if formatted like `[abc](my\best\file.txt)`
+- Open path under cursor if formatted like `[tag](C:\my\best\file.txt)`
 
 
 ## Commands
