@@ -1,3 +1,5 @@
+# NOTE - refactored into [SublimeBagOfTricks](https://github.com/cepthomas/SublimeBagOfTricks)
+
 # SbotUtils
 
 Odds and ends in the Sbot family that don't have a better home for now. You can add them to your personal 
